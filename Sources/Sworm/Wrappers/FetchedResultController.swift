@@ -80,6 +80,7 @@ public final class FetchedResultController<ResultType: ManagedObjectConvertible>
             sectionNameKeyPath: nil,
             cacheName: nil
         )
+        fetchedResultController.delegate = self
         do {
             try fetchedResultController.performFetch()
         } catch {
@@ -106,7 +107,7 @@ public final class FetchedResultController<ResultType: ManagedObjectConvertible>
             }
             
         case .insert:
-            if let indexPath = indexPath {
+            if let indexPath = newIndexPath {
                 update.insertions.append(indexPath.item)
             }
             
