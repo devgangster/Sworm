@@ -80,6 +80,7 @@ public final class FetchedResultController<ResultType: ManagedObjectConvertible>
             sectionNameKeyPath: nil,
             cacheName: nil
         )
+        super.init()
         fetchedResultController.delegate = self
         do {
             try fetchedResultController.performFetch()
