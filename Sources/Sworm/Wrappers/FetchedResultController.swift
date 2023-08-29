@@ -12,19 +12,19 @@ import UIKit
 public struct FetchedResultUpdate {
     
     /// Изначальное обновление (выборка не была изменена, идет обработка текущих значений)
-    static let initalUpdate = FetchedResultUpdate(deletions: [], insertions: [], modifications: [])
+    public static let initalUpdate = FetchedResultUpdate(deletions: [], insertions: [], modifications: [])
     
     /// Индексы моделей, которые были удалены
-    var deletions: [Int]
+    public var deletions: [Int]
     
     /// Индексы моделей, которые были добавлены
-    var insertions: [Int]
+    public var insertions: [Int]
     
     /// Индексы моделей, которые были изменены
-    var modifications: [Int]
+    public var modifications: [Int]
     
     /// Является ли обновление изначальным обновлением
-    var isInitialUpdate: Bool {
+    public var isInitialUpdate: Bool {
         return deletions.isEmpty && insertions.isEmpty && modifications.isEmpty
     }
 }
@@ -34,7 +34,7 @@ public typealias FetchedResultUpdateBlock = (FetchedResultUpdate) -> ()
 
 /// Протокол конкретной реализации контроллера выборки из БД
 /// Реализуется для каждой конкретной БД
-protocol FetchedResultControllerProtocol: AnyObject {
+public protocol FetchedResultControllerProtocol: AnyObject {
     
     /// Тип моделей
     associatedtype Model: ManagedObjectConvertible
@@ -47,6 +47,10 @@ protocol FetchedResultControllerProtocol: AnyObject {
     
     /// Обработчик, который вызывается при изменении выборки из БД
     var onUpdate: FetchedResultUpdateBlock? { get set }
+}
+
+public func fetchedController<ResultType: ManagedObjectConvertible>(request: Request<ResultType>,managedObjectContext: ManagedObjectContext) -> any FetchedResultControllerProtocol {
+    FetchedResultController(request: request, managedObjectContext: managedObjectContext)
 }
 
 public final class FetchedResultController<ResultType: ManagedObjectConvertible>: NSObject, FetchedResultControllerProtocol, NSFetchedResultsControllerDelegate {
@@ -67,10 +71,14 @@ public final class FetchedResultController<ResultType: ManagedObjectConvertible>
     }
     
     // MARK: - Initilizations
-    
+
+    let managedObjectContext: ManagedObjectContext
+
     public init(request: Request<ResultType>,
                 managedObjectContext: ManagedObjectContext) {
         self.request = request
+        self.managedObjectContext = managedObjectContext
+
         let fetchRequest = request.makeFetchRequest(
             ofType: (NSManagedObject.self, .managedObjectResultType)
         )
@@ -95,7 +103,12 @@ public final class FetchedResultController<ResultType: ManagedObjectConvertible>
         update = .initalUpdate
     }
     
-    public func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
+    public func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>,
+                           didChange anObject: Any,
+                           at indexPath: IndexPath?,
+                           for type: NSFetchedResultsChangeType,
+                           newIndexPath: IndexPath?)
+    {
         var update = FetchedResultUpdate(
             deletions: self.update?.deletions ?? [],
             insertions: self.update?.insertions ?? [],
